@@ -1,39 +1,46 @@
 import React from 'react';
-import { LayoutDashboard, Sprout, AlertTriangle, Calendar, BarChart2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+    Home, MapPin, Sprout, Bell, User, LayoutGrid
+} from 'lucide-react';
 
-export const BottomNav = ({ activeTab, onTabChange, t }) => {
-    const tabs = [
-        { id: 'dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
-        { id: 'recommendations', icon: Sprout, label: t.nav.recommendations },
-        { id: 'alerts', icon: AlertTriangle, label: t.nav.alerts },
-        { id: 'calendar', icon: Calendar, label: t.nav.calendar },
-        { id: 'stats', icon: BarChart2, label: t.nav.stats },
-    ];
+const TABS = [
+    { id: 'inicio', icon: Home, label: 'Inicio' },
+    { id: 'parcelas', icon: MapPin, label: 'Parcelas' },
+    { id: 'cultivos', icon: Sprout, label: 'Cultivos' },
+    { id: 'alertas', icon: Bell, label: 'Alertas' },
+    { id: 'perfil', icon: User, label: 'Perfil' },
+];
 
+export const BottomNav = ({ activeTab, onTabChange }) => {
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 pb-safe">
-            <div className="flex justify-around items-center h-20 px-2 max-w-lg mx-auto">
-                {tabs.map((tab) => {
+        <nav className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] z-[60]">
+            <div className="bg-[#111827]/80 backdrop-blur-3xl border border-white/10 rounded-[32px] p-2 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+                {TABS.map((tab) => {
                     const isActive = activeTab === tab.id;
-                    const Icon = tab.icon;
-
                     return (
                         <button
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
-                            className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 ${isActive
-                                ? 'bg-andean-sky/10 text-andean-sky translate-y-[-8px]'
-                                : 'text-gray-400 hover:bg-gray-50'
-                                }`}
+                            className="relative flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all active:scale-90"
                         >
-                            <Icon className={`w-7 h-7 mb-1 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                            <span className={`text-[10px] font-bold ${isActive ? 'text-andean-sky' : 'text-gray-400'}`}>
-                                {tab.label}
+                            <tab.icon
+                                className={`relative z-10 size-5 transition-all duration-300 ${isActive ? 'text-agro-green' : 'text-slate-600'}`}
+                                strokeWidth={isActive ? 2.5 : 2}
+                            />
+                            <span className={`text-[8px] font-black mt-1 transition-all duration-300 tracking-tighter ${isActive ? 'text-agro-green opacity-100' : 'text-slate-700 opacity-0'}`}>
+                                {tab.label.toUpperCase()}
                             </span>
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeGlow"
+                                    className="absolute bottom-0 size-1 bg-agro-green rounded-full shadow-[0_0_10px_#00ff87]"
+                                />
+                            )}
                         </button>
                     );
                 })}
             </div>
-        </div>
+        </nav>
     );
 };

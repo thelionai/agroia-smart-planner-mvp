@@ -1,0 +1,120 @@
+# AgroIA SmartPlanner — Orquestación de servicios para desarrollo
+#
+# Levanta todo el stack con: docker compose up --build
+#
+# Servicios:
+#   db       Postgres 16
+#   backend  FastAPI en :8000
+#   server   Express + Ollama en :3002
+#   ollama   Ollama LLM server en :11434
+#   frontend Vite dev server en :5173
+
+services:
+
+  # ─── Base de datos PostgreSQL ────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: agroia_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agroia
+      POSTGRES_PASSWORD: agroia_dev
+      POSTGRES_DB: agroia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agroia -d agroia_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend FastAPI ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agroia_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://agroia:agroia_dev@db:5432/agroia_db
+      SECRET_KEY: ${SECRET_KEY:-cambia_esto_en_produccion_genera_uno_con_openssl_rand_hex_32}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      ENVIRONMENT: development
+      CLIMA_API: open-meteo
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/venv          # excluir venv del bind mount
+      - /app/__pycache__
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ─── Ollama (LLM local) ──────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: agroia_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Para usar GPU descomenta lo siguiente y asegúrate de tener
+    # nvidia-container-toolkit instalado:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ─── Server Node (Chat IA con Ollama) ────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: agroia_server
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      PORT: 3002
+      OLLAMA_HOST: http://ollama:11434
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+  # ─── Frontend React + Vite ───────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: agroia_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_CHAT_API_URL: http://localhost:3002
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:
+    name: agroia_postgres_data
+  ollama_data:
+    name: agroia_ollama_data

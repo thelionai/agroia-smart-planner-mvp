@@ -1,22 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Mic, X, Send, Loader2 } from 'lucide-react';
 
-const ChatAI = ({ t }) => {
+const ChatAI = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    // Update welcome message when language changes
+    const SPANISH_CHAT = {
+        title: 'Asistente AgroIA',
+        subtitle: 'Consultas Biológicas en Tiempo Real',
+        welcome: 'Hola, soy tu asistente de AgroIA. ¿En qué puedo ayudarte hoy con tus cultivos?',
+        placeholder: 'Escribe tu consulta aquí...',
+        chips: {
+            whenPlant: '¿Cuándo sembrar?',
+            pests: 'Riesgo de plagas',
+            price: 'Precio del mercado'
+        }
+    };
+
+    // Initial welcome message
     useEffect(() => {
-        setMessages(prev => {
-            if (prev.length === 0) {
-                return [{ role: 'assistant', content: t.chat.welcome }];
-            }
-            return prev;
-        });
-    }, [t]);
+        if (messages.length === 0) {
+            setMessages([{ role: 'assistant', content: SPANISH_CHAT.welcome }]);
+        }
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,7 +66,7 @@ const ChatAI = ({ t }) => {
             console.error('Error:', error);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'Lo siento, hubo un problema al conectar con el servidor. ¿Está Ollama corriendo?'
+                content: 'Lo siento, hubo un problema al conectar con el servidor central. ¿Está el nodo Ollama activo?'
             }]);
         } finally {
             setIsLoading(false);
@@ -70,83 +79,73 @@ const ChatAI = ({ t }) => {
 
     return (
         <>
-            {/* Floating Action Button */}
+            {/* Botón de Acción Flotante */}
             <button
                 onClick={() => setIsOpen(true)}
-                className={`fixed bottom-24 right-4 bg-gradient-to-r from-andean-maize to-amber-400 text-gray-900 rounded-full p-4 shadow-xl z-30 transition-transform hover:scale-110 active:scale-95 ${isOpen ? 'scale-0' : 'scale-100'}`}
+                className={`fixed bottom-24 right-4 bg-agro-green text-agro-navy rounded-full p-4 shadow-[0_0_20px_rgba(0,255,135,0.4)] z-30 transition-transform hover:scale-110 active:scale-95 ${isOpen ? 'scale-0' : 'scale-100'}`}
             >
-                <MessageSquare className="w-8 h-8" />
+                <MessageSquare className="w-8 h-8 font-black" />
             </button>
 
-            {/* Chat Interface */}
-            <div className={`fixed inset-0 z-50 flex flex-col items-center justify-end sm:justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            {/* Interfaz de Chat */}
+            <div className={`fixed inset-0 z-[110] flex flex-col items-center justify-end sm:justify-center p-4 bg-agro-navy/80 backdrop-blur-md transition-opacity ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
 
                 <div
-                    className={`w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
+                    className={`w-full max-w-md bg-[#0D1425] rounded-[24px] border border-white/10 shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
                     style={{ height: '80vh', maxHeight: '600px' }}
                 >
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-andean-earth to-andean-clay p-4 flex items-center justify-between text-white shrink-0">
+                    {/* Cabecera */}
+                    <div className="bg-white/5 p-4 flex items-center justify-between text-white shrink-0 border-b border-white/5">
                         <div className="flex items-center gap-3">
-                            <div className="bg-white/20 p-2 rounded-full">
-                                <MessageSquare className="w-5 h-5" />
+                            <div className="bg-agro-green/20 p-2 rounded-full">
+                                <MessageSquare className="w-5 h-5 text-agro-green" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-lg leading-none">{t.chat.title}</h3>
-                                <span className="text-xs text-amber-100">{t.chat.subtitle}</span>
+                                <h3 className="font-bold text-sm tracking-tight">{SPANISH_CHAT.title}</h3>
+                                <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{SPANISH_CHAT.subtitle}</span>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
 
-                    {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-                        {messages.length === 0 && (
-                            <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-andean-foliage flex items-center justify-center text-white font-bold shrink-0">
-                                    IA
-                                </div>
-                                <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 text-gray-800 max-w-[85%]">
-                                    <p className="font-medium text-sm whitespace-pre-wrap">{t.chat.welcome}</p>
-                                </div>
-                            </div>
-                        )}
+                    {/* Área de Mensajes */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${msg.role === 'assistant' ? 'bg-andean-foliage' : 'bg-andean-sky'}`}>
-                                    {msg.role === 'assistant' ? 'IA' : 'YO'}
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-agro-navy font-black text-[10px] shrink-0 ${msg.role === 'assistant' ? 'bg-agro-green' : 'bg-white/20 text-white'}`}>
+                                    {msg.role === 'assistant' ? 'AI' : 'YO'}
                                 </div>
-                                <div className={`p-3 rounded-2xl shadow-sm border max-w-[85%] ${msg.role === 'assistant'
-                                    ? 'bg-white border-gray-100 text-gray-800 rounded-tl-sm'
-                                    : 'bg-andean-sky text-white border-andean-sky rounded-tr-sm'
+                                <div className={`p-4 rounded-[20px] shadow-sm max-w-[85%] ${msg.role === 'assistant'
+                                    ? 'bg-white/5 border border-white/10 text-slate-200 rounded-tl-sm'
+                                    : 'bg-agro-green text-agro-navy font-medium border-agro-green rounded-tr-sm'
                                     }`}>
-                                    <p className="font-medium text-sm whitespace-pre-wrap">{msg.content}</p>
+                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                                 </div>
                             </div>
                         ))}
                         {isLoading && (
                             <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-andean-foliage flex items-center justify-center text-white font-bold shrink-0">IA</div>
-                                <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 flex items-center gap-2 text-gray-500 text-sm">
+                                <div className="w-8 h-8 rounded-full bg-agro-green flex items-center justify-center text-agro-navy font-black text-[10px] shrink-0">AI</div>
+                                <div className="bg-white/5 p-3 rounded-[20px] rounded-tl-sm border border-white/10 flex items-center gap-2 text-slate-500 text-sm">
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Pensando...</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Sincronizando...</span>
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
-                    <div className="p-4 bg-white border-t border-gray-100 shrink-0">
-                        {/* Quick Chips */}
-                        <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
-                            {[t.chat.chips.whenPlant, t.chat.chips.pests, t.chat.chips.price].map(q => (
+                    {/* Área de Entrada */}
+                    <div className="p-4 bg-white/5 border-t border-white/5 shrink-0">
+                        {/* Chips Rápidos */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                            {[SPANISH_CHAT.chips.whenPlant, SPANISH_CHAT.chips.pests, SPANISH_CHAT.chips.price].map(q => (
                                 <button
                                     key={q}
                                     onClick={() => setInput(q)}
-                                    className="whitespace-nowrap px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-full transition-colors"
+                                    className="whitespace-nowrap px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-full transition-all active:scale-95"
                                 >
                                     {q}
                                 </button>
@@ -154,7 +153,7 @@ const ChatAI = ({ t }) => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button className="p-3 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 active:scale-95 transition-all">
+                            <button className="p-3 bg-white/5 rounded-xl text-slate-400 hover:bg-white/10 active:scale-95 transition-all">
                                 <Mic className="w-6 h-6" />
                             </button>
                             <div className="flex-1 relative">
@@ -163,16 +162,16 @@ const ChatAI = ({ t }) => {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyPress={handleKeyPress}
-                                    placeholder={t.chat.placeholder}
-                                    className="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-andean-sky/50 focus:border-andean-sky transition-all"
+                                    placeholder={SPANISH_CHAT.placeholder}
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-agro-green/50 placeholder:text-slate-600 text-sm transition-all"
                                 />
                             </div>
                             <button
                                 onClick={handleSend}
                                 disabled={isLoading || !input.trim()}
-                                className="p-3 bg-andean-sky text-white rounded-xl shadow-lg hover:bg-sky-600 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
+                                className="p-3 bg-agro-green text-agro-navy rounded-xl shadow-[0_0_15px_rgba(0,255,135,0.3)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
                             >
-                                <Send className="w-5 h-5" />
+                                <Send className="w-5 h-5 font-black" />
                             </button>
                         </div>
                     </div>

@@ -1,0 +1,49 @@
+# Específico del backend Python
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Caché
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+agroia.db
+agroia*.db-journal
+
+# Alembic — mantener versions/ pero no logs
+alembic/versions/__pycache__/
+alembic/versions/*.pyc
+
+# Tests
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Datos pesados (satélite, ML)
+data/sentinel/
+data/ndvi/
+data/chroma/
+data/embeddings/
+*.tif
+*.tiff
+*.pkl
+
+# IDE
+.vscode/
+.idea/
+*.swp

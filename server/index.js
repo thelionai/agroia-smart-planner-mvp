@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { Ollama } from 'ollama';
+import { getWeatherData, getClimateData } from './services/weatherService.js';
+import { transformDataForRAG, SYSTEM_PROMPT_RAG } from './services/ragLogic.js';
 
 const app = express();
 const PORT = 3002;
@@ -10,7 +12,7 @@ app.use(express.json());
 
 const ollama = new Ollama({ host: 'http://localhost:11434' });
 
-// Prompt especializado en agronomía peruana
+// Prompt especializado en agronomía peruana (Legacy / Chat Standard)
 const SYSTEM_PROMPT = `Eres un agrónomo experto especializado en agricultura peruana, particularmente en la región andina. 
 
 Tu expertise incluye:
@@ -38,7 +40,7 @@ Cuando des recomendaciones técnicas:
 
 Eres empático, paciente y educativo.`;
 
-// Endpoint de chat
+// Endpoint de chat (Standard)
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history = [], location = '', altitude = '' } = req.body;
@@ -58,7 +60,7 @@ Agricultor: ${message}
 Agrónomo:`;
 
     const response = await ollama.chat({
-      model: 'llama3.2',
+      model: 'llama3.2', // Ensure this model exists in user's Ollama
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...history,
@@ -82,18 +84,64 @@ Agrónomo:`;
   }
 });
 
+// NUEVO: Endpoint RAG para Recomendaciones Climáticas
+app.post('/api/recommendation', async (req, res) => {
+  try {
+    const { location, lat, lon, crop } = req.body;
+
+    // 1. Fetch External Data
+    console.log(`📡 Fetching data for ${location} (${lat}, ${lon})...`);
+    const weatherData = await getWeatherData(lat, lon);
+    const climateData = await getClimateData(lat, lon);
+
+    // 2. Transform Data to Context
+    const locationInfo = { name: location, crop: crop };
+    const contextData = transformDataForRAG(weatherData, climateData, locationInfo);
+
+    console.log('📝 Context generated:', contextData);
+
+    // 3. Ask Ollama
+    const userPrompt = `Necesito una recomendación técnica para mi cultivo de ${crop || 'Papa'}. Basa tu respuesta en los siguientes datos telemétricos.`;
+
+    const response = await ollama.chat({
+      model: 'llama3.2',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT_RAG },
+        { role: 'user', content: contextData + "\n\n" + userPrompt }
+      ],
+      stream: false
+    });
+
+    res.json({
+      success: true,
+      data: {
+        weather: weatherData,
+        climate: climateData,
+        recommendation: response.message.content
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ RAG System Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Verificar si Ollama está disponible
 app.get('/api/health', async (req, res) => {
   try {
     const models = await ollama.list();
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       models: models.models.map(m => m.name),
       message: 'Ollama conectado correctamente'
     });
   } catch (error) {
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       message: 'No se pudo conectar a Ollama',
       details: error.message
     });

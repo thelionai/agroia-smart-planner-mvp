@@ -1,0 +1,16 @@
+# Frontend Vite + React — Dockerfile para desarrollo (HMR)
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar deps (capa cacheable)
+COPY package*.json ./
+RUN npm install --omit=optional
+
+# Copiar el resto del código
+COPY . .
+
+EXPOSE 5173
+
+# Comando dev por defecto (sobreescribible)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

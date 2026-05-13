@@ -1,24 +1,150 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Safe area ── */
 @layer utilities {
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 }
 
-* {
+/* ── Reset ── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* ── Root ── */
+:root {
+  --agro-navy:    #0A0F1E;
+  --agro-dark:    #0D1428;
+  --agro-green:   #00FF87;
+  --agro-blue:    #0066FF;
+  --agro-teal:    #00C9FF;
+  --agro-gold:    #FFD700;
+  --agro-red:     #FF4444;
+  --agro-orange:  #FF8800;
+  --agro-text:    #E2E8F0;
+  --agro-muted:   #64748B;
+  --agro-glass:   rgba(255,255,255,0.05);
+  --agro-border:  rgba(255,255,255,0.10);
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--agro-navy);
+  color: var(--agro-text);
+  min-height: 100dvh;
 }
 
+/* ── Glass cards ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
 
+.glass-dark {
+  background: rgba(13, 20, 40, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
 
+.glass-green {
+  background: rgba(0, 255, 135, 0.06);
+  border: 1px solid rgba(0, 255, 135, 0.20);
+  backdrop-filter: blur(16px);
+}
+
+.glass-blue {
+  background: rgba(0, 102, 255, 0.08);
+  border: 1px solid rgba(0, 102, 255, 0.20);
+  backdrop-filter: blur(16px);
+}
+
+/* ── Glow effects ── */
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.30),
+              0 0 40px rgba(0, 255, 135, 0.10);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(0, 102, 255, 0.30),
+              0 0 40px rgba(0, 102, 255, 0.10);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 12px rgba(0, 255, 135, 0.6);
+}
+
+/* ── Dot live indicator ── */
+.dot-live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--agro-green);
+  box-shadow: 0 0 6px var(--agro-green);
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Animated background grid ── */
+.agro-grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 255, 135, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 135, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--agro-navy); }
+::-webkit-scrollbar-thumb { background: rgba(0, 255, 135, 0.3); border-radius: 2px; }
+
+/* ── Animations ── */
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,255,135,0.3); }
+  50%       { box-shadow: 0 0 24px rgba(0,255,135,0.7); }
+}
+@keyframes score-ring {
+  from { stroke-dashoffset: 283; }
+  to   { stroke-dashoffset: var(--ring-offset); }
+}
+
+.animate-fade-up { animation: fade-slide-up 0.4s ease-out both; }
+.animate-score-ring { animation: score-ring 1.2s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+/* ── Form inputs dark ── */
+.input-dark {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--agro-text);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-dark::placeholder { color: rgba(255,255,255,0.25); }
+.input-dark:focus {
+  border-color: rgba(0,255,135,0.5);
+  box-shadow: 0 0 0 2px rgba(0,255,135,0.12);
+}
+.input-dark option { background: #0D1428; color: #E2E8F0; }
+
+/* ── Display font helper ── */
+.font-display { font-family: 'Space Grotesk', Inter, system-ui, sans-serif; }
